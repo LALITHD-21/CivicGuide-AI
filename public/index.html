@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CivicGuide AI</title>
+  <meta
+    name="description"
+    content="CivicGuide AI explains elections with clean steps, a progress tracker, a checklist, and actionable next steps."
+  />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="page-shell">
+    <header class="app-header">
+      <div class="header-copy">
+        <div class="brand-lockup" aria-label="CivicGuide AI logo">
+          <div class="brand-mark" aria-hidden="true">
+            <span class="brand-chakra"></span>
+          </div>
+          <div class="brand-name">
+            <strong>CivicGuide AI</strong>
+            <span>India voter companion</span>
+          </div>
+        </div>
+
+        <button type="button" id="theme-toggle" class="theme-toggle" aria-pressed="false">
+          <span class="theme-toggle-icon" aria-hidden="true"></span>
+          <span id="theme-toggle-label">Light mode</span>
+        </button>
+
+        <p class="eyebrow">Simple election guidance</p>
+        <h1>CivicGuide AI</h1>
+        <p class="header-sub">
+          Personalized, step-by-step election help for eligibility, registration, documents, deadlines, and voting day.
+        </p>
+
+        <div class="hero-tags">
+          <span class="hero-tag">Eligibility</span>
+          <span class="hero-tag">Registration</span>
+          <span class="hero-tag">Deadlines</span>
+          <span class="hero-tag">Voting Day</span>
+        </div>
+      </div>
+
+      <aside class="hero-card">
+        <p class="hero-card-label">Civic Pulse</p>
+        <div class="hero-metrics">
+          <article class="metric-card">
+            <span class="metric-label">Current stage</span>
+            <strong id="hero-stage">Set profile</strong>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Readiness</span>
+            <strong id="hero-readiness">0%</strong>
+          </article>
+          <article class="metric-card metric-card-wide">
+            <span class="metric-label">Next focus</span>
+            <strong id="hero-focus">Add your location, age group, and registration status.</strong>
+          </article>
+        </div>
+
+        <div class="profile-badges">
+          <span id="badge-location" class="profile-badge">Location: Not set</span>
+          <span id="badge-age" class="profile-badge">Age: Not set</span>
+          <span id="badge-registered" class="profile-badge">Registered: Not set</span>
+          <span id="badge-user" class="profile-badge">Profile: Guest</span>
+        </div>
+      </aside>
+    </header>
+
+    <div class="dashboard-grid">
+      <div class="main-column">
+        <section class="user-profile-panel">
+          <div class="user-profile-card">
+            <div class="avatar-ring">
+              <span id="user-avatar">CG</span>
+            </div>
+            <div class="user-profile-summary">
+              <p class="section-label">User Profile</p>
+              <h2 id="user-display-name">Your civic profile</h2>
+              <p id="user-profile-line">Add your name, voter role, and language preference.</p>
+              <blockquote class="profile-quote">Every vote is a voice in India&apos;s democracy.</blockquote>
+            </div>
+          </div>
+
+          <form id="user-profile-form" class="user-profile-form">
+            <label class="field">
+              <span>Your name</span>
+              <input id="user-name-input" type="text" maxlength="40" placeholder="Example: Aarav" />
+            </label>
+
+            <label class="field">
+              <span>Voter role</span>
+              <select id="voter-role-select">
+                <option value="">Select role</option>
+                <option value="first-time">First-time voter</option>
+                <option value="regular">Regular voter</option>
+                <option value="family-helper">Helping family</option>
+                <option value="student">Student learner</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>Language</span>
+              <select id="language-select">
+                <option value="">Preferred language</option>
+                <option value="english">English</option>
+                <option value="hindi">Hindi</option>
+                <option value="tamil">Tamil</option>
+                <option value="telugu">Telugu</option>
+                <option value="bengali">Bengali</option>
+                <option value="marathi">Marathi</option>
+              </select>
+            </label>
+
+            <button type="submit" class="primary-button">Save profile</button>
+          </form>
+        </section>
+
+        <section class="chat-panel">
+          <div class="section-heading">
+            <div>
+              <p class="section-label">Chat Assistant Panel</p>
+              <h2>Start Here</h2>
+            </div>
+            <p id="status-line" class="section-copy">Tell CivicGuide AI where you are in the process.</p>
+          </div>
+
+          <div id="signal-strip" class="signal-strip">
+            <button type="button" class="signal-chip" data-prompt="How do I register to vote?">Registration</button>
+            <button type="button" class="signal-chip" data-prompt="Am I eligible to vote?">Eligibility</button>
+            <button type="button" class="signal-chip" data-prompt="What documents do I need?">Documents</button>
+            <button type="button" class="signal-chip" data-prompt="Show key deadlines">Deadlines</button>
+            <button type="button" class="signal-chip" data-prompt="What happens on voting day?">Voting Day</button>
+          </div>
+
+          <form id="profile-form" class="profile-form">
+            <label class="field field-location">
+              <span>Country or region</span>
+              <input id="location-input" type="text" maxlength="60" placeholder="India, California, London, Ontario..." />
+            </label>
+
+            <label class="field field-age">
+              <span>Age group</span>
+              <select id="age-select">
+                <option value="">Select age group</option>
+                <option value="under-18">Under 18</option>
+                <option value="18-24">18-24</option>
+                <option value="25-44">25-44</option>
+                <option value="45-plus">45+</option>
+              </select>
+            </label>
+
+            <div class="field field-registered">
+              <span>Are you registered?</span>
+              <div id="registered-toggle" class="segmented-control">
+                <button type="button" class="segment-button" data-registered="yes">Yes</button>
+                <button type="button" class="segment-button" data-registered="no">No</button>
+                <button type="button" class="segment-button" data-registered="unsure">Not sure</button>
+              </div>
+            </div>
+
+            <button type="submit" class="primary-button profile-submit">Update guidance</button>
+          </form>
+
+          <div id="chat-stream" class="chat-stream" aria-live="polite"></div>
+
+          <form id="chat-form" class="composer">
+            <label class="composer-field" for="chat-input">
+              <span class="sr-only">Ask a question about elections</span>
+              <input
+                id="chat-input"
+                type="text"
+                maxlength="180"
+                placeholder="Ask about deadlines, documents, voting day, or explain like I'm 15"
+                autocomplete="off"
+              />
+            </label>
+            <button type="submit" class="primary-button composer-submit">Ask</button>
+          </form>
+        </section>
+
+        <section class="actions-panel">
+          <div class="section-heading">
+            <div>
+              <p class="section-label">Action Buttons</p>
+              <h2>Move Forward</h2>
+            </div>
+            <p class="section-copy">Fast actions for the next likely step.</p>
+          </div>
+
+          <div id="quick-actions" class="quick-actions">
+            <button type="button" class="action-button" data-prompt="Register now">
+              <span class="action-title">Register Now</span>
+              <span class="action-detail">Start the registration path</span>
+              <span class="action-arrow" aria-hidden="true">&rarr;</span>
+            </button>
+            <button type="button" class="action-button" data-prompt="Check my registration status">
+              <span class="action-title">Check Status</span>
+              <span class="action-detail">Confirm whether your record is active</span>
+              <span class="action-arrow" aria-hidden="true">&rarr;</span>
+            </button>
+            <button type="button" class="action-button" data-prompt="Show key deadlines">
+              <span class="action-title">Deadlines</span>
+              <span class="action-detail">See the dates you should not miss</span>
+              <span class="action-arrow" aria-hidden="true">&rarr;</span>
+            </button>
+            <button type="button" class="action-button" data-prompt="Explain like I'm 15">
+              <span class="action-title">Explain Like I&apos;m 15</span>
+              <span class="action-detail">Switch to simpler language</span>
+              <span class="action-arrow" aria-hidden="true">&rarr;</span>
+            </button>
+            <button type="button" class="action-button" data-prompt="FAQ mode">
+              <span class="action-title">FAQ Mode</span>
+              <span class="action-detail">Get shorter, practical answers</span>
+              <span class="action-arrow" aria-hidden="true">&rarr;</span>
+            </button>
+          </div>
+
+          <div id="resource-links" class="resource-links"></div>
+        </section>
+
+        <section class="news-panel">
+          <div class="section-heading">
+            <div>
+              <p class="section-label">ECI News Desk</p>
+              <h2>Latest Election Updates</h2>
+            </div>
+            <p class="section-copy">Recent Election Commission of India updates, with quick explanations.</p>
+          </div>
+
+          <div id="news-list" class="news-list"></div>
+        </section>
+      </div>
+
+      <div class="side-column">
+        <section class="planner-panel">
+          <div class="section-heading compact">
+            <div>
+              <p class="section-label">Election Day Planner</p>
+              <h2>Voting Plan</h2>
+            </div>
+          </div>
+
+          <form id="planner-form" class="planner-form">
+            <label class="field">
+              <span>Election date</span>
+              <input id="election-date-input" type="date" />
+            </label>
+
+            <label class="field">
+              <span>Voting method</span>
+              <select id="voting-method-select">
+                <option value="">Choose method</option>
+                <option value="in-person">In person</option>
+                <option value="early">Early voting</option>
+                <option value="mail">Mail or absentee</option>
+                <option value="unsure">Not sure yet</option>
+              </select>
+            </label>
+
+            <button type="submit" class="primary-button">Save plan</button>
+          </form>
+
+          <div id="plan-summary" class="plan-summary"></div>
+          <div id="plan-milestones" class="plan-milestones"></div>
+
+          <div class="planner-actions">
+            <button type="button" id="copy-plan-button" class="secondary-button">Copy Plan</button>
+            <button type="button" id="clear-plan-button" class="secondary-button danger">Clear</button>
+          </div>
+        </section>
+
+        <section class="kit-panel">
+          <div class="section-heading compact">
+            <div>
+              <p class="section-label">Voting Day Kit</p>
+              <h2>Personal Kit</h2>
+            </div>
+            <div class="kit-badge">
+              <strong id="kit-ready-count">0/4</strong>
+              <span>Ready items</span>
+            </div>
+          </div>
+
+          <form id="kit-form" class="kit-form">
+            <label class="field">
+              <span>Polling place or link</span>
+              <input id="kit-place-input" type="text" maxlength="90" placeholder="School hall, ward office, official link..." />
+            </label>
+
+            <label class="field">
+              <span>Travel plan</span>
+              <input id="kit-travel-input" type="text" maxlength="90" placeholder="Walk, bus route, friend pickup, taxi..." />
+            </label>
+
+            <label class="field">
+              <span>Important note</span>
+              <input id="kit-note-input" type="text" maxlength="110" placeholder="Bring voter ID, go before work, call helpline..." />
+            </label>
+
+            <button type="submit" class="primary-button">Save kit</button>
+          </form>
+
+          <div id="kit-items" class="kit-items"></div>
+
+          <div class="kit-actions">
+            <button type="button" id="copy-kit-button" class="secondary-button">Copy Kit</button>
+            <button type="button" id="clear-kit-button" class="secondary-button danger">Clear</button>
+          </div>
+        </section>
+
+        <section class="progress-panel">
+          <div class="section-heading compact">
+            <div>
+              <p class="section-label">Progress Tracker</p>
+              <h2>Your Election Path</h2>
+            </div>
+            <div class="progress-stats">
+              <strong id="progress-label">Step 1 of 5</strong>
+              <span id="checklist-count">0/5 complete</span>
+            </div>
+          </div>
+
+          <div class="progress-track">
+            <div id="progress-fill" class="progress-fill" style="width: 20%"></div>
+          </div>
+
+          <div id="progress-steps" class="progress-steps"></div>
+
+          <div id="reminder-note" class="reminder-note hidden"></div>
+        </section>
+
+        <section class="quiz-panel">
+          <div class="section-heading compact">
+            <div>
+              <p class="section-label">Civic Knowledge Quiz</p>
+              <h2>Readiness Check</h2>
+            </div>
+            <div class="quiz-score">
+              <strong id="quiz-score">0/0</strong>
+              <span id="quiz-progress-text">Question 1</span>
+            </div>
+          </div>
+
+          <div class="quiz-body">
+            <p id="quiz-question" class="quiz-question"></p>
+            <div id="quiz-options" class="quiz-options"></div>
+            <div id="quiz-feedback" class="quiz-feedback" aria-live="polite"></div>
+          </div>
+
+          <div class="quiz-actions">
+            <button type="button" id="quiz-next-button" class="secondary-button">Next</button>
+            <button type="button" id="quiz-reset-button" class="secondary-button danger">Reset Quiz</button>
+          </div>
+        </section>
+
+        <section class="checklist-panel">
+          <div class="section-heading">
+            <div>
+              <p class="section-label">Checklist Panel</p>
+              <h2>Personal Checklist</h2>
+            </div>
+            <p class="section-copy">Use the checklist to keep track of what is already done.</p>
+          </div>
+
+          <div id="checklist-list" class="checklist-list"></div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
