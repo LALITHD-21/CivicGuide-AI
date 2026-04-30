@@ -71,7 +71,7 @@ All user preferences and progress are stored in the browser using `localStorage`
 | Frontend | HTML, CSS, Vanilla JavaScript |
 | Server | Node.js HTTP server |
 | Data | Static JSON files and browser `localStorage` |
-| Optional AI | OpenAI Responses API through `OPENAI_API_KEY` |
+| Optional AI | OpenAI API through `OPENAI_API_KEY` |
 | Testing | Node built-in test runner |
 | Container | Docker |
 | Deployment | Google Cloud Run |
@@ -202,7 +202,7 @@ npm test
 | --- | --- | --- |
 | `PORT` | `3000` locally, `8080` in Docker | Port used by the Node server |
 | `OPENAI_API_KEY` | Empty | Optional OpenAI API key for enhanced assistant responses |
-| `OPENAI_MODEL` | `gpt-5.4-mini` | OpenAI model used by the guide endpoint |
+| `OPENAI_MODEL` | `gpt-4o-mini` | OpenAI model used by the guide endpoint |
 | `GEMINI_API_KEY` | Empty | Optional Gemini fallback if OpenAI is not configured |
 
 Create a local `.env` from `.env.example` if needed. Do not commit real secrets.

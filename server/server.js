@@ -15,7 +15,7 @@ const PUBLIC_DIR = path.join(__dirname, "..", "public");
 loadEnvFile(path.join(__dirname, "..", ".env"));
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "";
-const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-5.4-mini";
+const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
 
 const RATE_LIMIT_WINDOW = 60 * 1000;
@@ -291,23 +291,30 @@ async function generateWithOpenAI(message, context, localFallback) {
       "Local fallback next action: " + localFallback.nextAction
     ].join("\n");
 
-    const response = await fetch("https://api.openai.com/v1/responses", {
+    const systemPrompt = [
+      "You are CivicGuide AI, a neutral election guidance assistant.",
+      "Write a concise, practical 1-2 paragraph overview for the user.",
+      "Do not invent election deadlines. Tell users to confirm final details with official election sources.",
+      "For India, prefer Election Commission of India and Voters' Service Portal references.",
+      "Keep the tone calm, clear, and non-partisan."
+    ].join(" ");
+
+    const validModel = OPENAI_MODEL === "gpt-5.4-mini" ? "gpt-4o-mini" : OPENAI_MODEL;
+
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Authorization": "Bearer " + OPENAI_API_KEY,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: OPENAI_MODEL,
-        instructions: [
-          "You are CivicGuide AI, a neutral election guidance assistant.",
-          "Write a concise, practical 1-2 paragraph overview for the user.",
-          "Do not invent election deadlines. Tell users to confirm final details with official election sources.",
-          "For India, prefer Election Commission of India and Voters' Service Portal references.",
-          "Keep the tone calm, clear, and non-partisan."
-        ].join(" "),
-        input: prompt,
-        max_output_tokens: 320
+        model: validModel,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: prompt }
+        ],
+        max_tokens: 320,
+        temperature: 0.1
       }),
       signal: controller.signal
     });
@@ -336,20 +343,9 @@ async function generateWithOpenAI(message, context, localFallback) {
 }
 
 function extractOpenAIText(data) {
-  if (typeof data.output_text === "string" && data.output_text.trim()) {
-    return data.output_text.trim();
+  if (data && data.choices && data.choices.length > 0 && data.choices[0].message && data.choices[0].message.content) {
+    return data.choices[0].message.content.trim();
   }
-
-  const output = Array.isArray(data.output) ? data.output : [];
-  for (const item of output) {
-    const content = Array.isArray(item.content) ? item.content : [];
-    for (const part of content) {
-      if (typeof part.text === "string" && part.text.trim()) {
-        return part.text.trim();
-      }
-    }
-  }
-
   return "";
 }
 
