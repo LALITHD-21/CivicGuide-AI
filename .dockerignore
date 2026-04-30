@@ -1,10 +1,8 @@
-.env
 .git
 .gitignore
 node_modules
 npm-debug.log
-Dockerfile
+.env
+.env.example
 README.md
-*.log
-.DS_Store
-Thumbs.db
+test/

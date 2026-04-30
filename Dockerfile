@@ -1,14 +1,20 @@
-FROM node:22-alpine
+# Use the official Node.js 18 Alpine image for an ultra-lightweight container
+FROM node:18-alpine
 
-WORKDIR /app
+# Create and change to the app directory
+WORKDIR /usr/src/app
 
-ENV NODE_ENV=production
-ENV PORT=8080
+# Copy application dependency manifests to the container image.
+# A wildcard is used to ensure copying both package.json AND package-lock.json (when available).
+# Copying this first prevents re-running npm install on every code change.
+COPY package*.json ./
 
-COPY package.json ./
-COPY public ./public
-COPY server ./server
+# Install production dependencies.
+RUN npm install --only=production
 
-EXPOSE 8080
+# Copy local code to the container image.
+COPY . ./
 
-CMD ["node", "server/server.js"]
+# Run the web service on container startup.
+# GCP Cloud Run injects the PORT environment variable dynamically (usually 8080).
+CMD [ "npm", "start" ]
