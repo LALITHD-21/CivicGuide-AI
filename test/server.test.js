@@ -37,7 +37,9 @@ test("Server and API tests", async (t) => {
   // Setup: start the server
   await t.test("Start server", () => {
     return new Promise((resolve, reject) => {
-      serverProcess = spawn(process.execPath, ["server/server.js"], { env: { ...process.env, PORT: String(TEST_PORT) } });
+      serverProcess = spawn(process.execPath, ["server/server.js"], {
+        env: { ...process.env, PORT: String(TEST_PORT), OPENAI_API_KEY: "", GEMINI_API_KEY: "" }
+      });
       
       let started = false;
       serverProcess.stdout.on("data", (data) => {

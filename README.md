@@ -22,7 +22,7 @@
 
 **CivicGuide AI** helps users understand voter registration, eligibility, documents, deadlines, polling preparation, and Election Commission of India resources through a single-page civic dashboard.
 
-The app is intentionally small and deployment-friendly, while still feeling polished: animated visuals, light and dark themes, profile-based guidance, multilingual data hooks, checklist progress, civic quiz flows, and optional Gemini-powered responses when a `GEMINI_API_KEY` is configured.
+The app is intentionally small and deployment-friendly, while still feeling polished: animated visuals, light and dark themes, profile-based guidance, multilingual data hooks, checklist progress, civic quiz flows, and optional OpenAI-powered responses when an `OPENAI_API_KEY` is configured.
 
 ---
 
@@ -32,7 +32,7 @@ The app is intentionally small and deployment-friendly, while still feeling poli
 | --- | --- |
 | India-first voter guide | Guidance around Indian voter registration, eligibility, documents, and ECI resources |
 | Local assistant | Structured civic guidance works without any external AI dependency |
-| Optional AI enhancement | Gemini support can be enabled with an environment variable |
+| Optional AI enhancement | OpenAI support can be enabled with an environment variable |
 | Personal profile | Name, voter role, location, age group, registration status, and language preference |
 | Smart checklist | Personalized readiness steps with visual completion tracking |
 | Voting-day planner | Save election date, voting method, route notes, and preparation milestones |
@@ -71,7 +71,7 @@ All user preferences and progress are stored in the browser using `localStorage`
 | Frontend | HTML, CSS, Vanilla JavaScript |
 | Server | Node.js HTTP server |
 | Data | Static JSON files and browser `localStorage` |
-| Optional AI | Google Gemini API through `GEMINI_API_KEY` |
+| Optional AI | OpenAI Responses API through `OPENAI_API_KEY` |
 | Testing | Node built-in test runner |
 | Container | Docker |
 | Deployment | Google Cloud Run |
@@ -129,7 +129,7 @@ The assistant returns structured guidance with:
 - Next action
 - Official resources
 
-By default, the guide works locally. If `GEMINI_API_KEY` is available, the server can enrich responses with Gemini while keeping a local fallback.
+By default, the guide works locally. If `OPENAI_API_KEY` is available, the server can enrich responses with OpenAI while keeping a local fallback. `GEMINI_API_KEY` remains supported as a secondary fallback.
 
 ### Light And Dark Theme
 
@@ -201,7 +201,9 @@ npm test
 | Variable | Default | Description |
 | --- | --- | --- |
 | `PORT` | `3000` locally, `8080` in Docker | Port used by the Node server |
-| `GEMINI_API_KEY` | Empty | Optional Gemini API key for enhanced assistant responses |
+| `OPENAI_API_KEY` | Empty | Optional OpenAI API key for enhanced assistant responses |
+| `OPENAI_MODEL` | `gpt-5.4-mini` | OpenAI model used by the guide endpoint |
+| `GEMINI_API_KEY` | Empty | Optional Gemini fallback if OpenAI is not configured |
 
 Create a local `.env` from `.env.example` if needed. Do not commit real secrets.
 
@@ -390,7 +392,7 @@ The app uses modern browser features including CSS animations, `localStorage`, F
 | `public/data/election_db.json` | Election guidance data |
 | `public/data/locales.json` | Locale and language data |
 | `public/index.html` | Main page structure |
-| `server/server.js` | API behavior, static serving, security headers, Gemini integration |
+| `server/server.js` | API behavior, static serving, security headers, OpenAI integration |
 
 ---
 
@@ -404,7 +406,7 @@ Before deployment:
 - Test light and dark themes.
 - Check `GET /api/health`.
 - Confirm the Docker image runs on port `8080`.
-- Add `GEMINI_API_KEY` in Cloud Run only if AI-enhanced responses are needed.
+- Add `OPENAI_API_KEY` in Cloud Run if AI-enhanced responses are needed.
 - Deploy to Cloud Run.
 
 ---

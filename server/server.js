@@ -1,18 +1,21 @@
 /**
  * @fileoverview CivicGuide AI Server
  * Handles static asset delivery, rate limiting, and the /api/guide endpoint.
- * Includes security headers, CORS, gzip compression, and Gemini API integration.
+ * Includes security headers, CORS, gzip compression, and optional AI integration.
  */
 
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
-const crypto = require("crypto");
 const zlib = require("zlib");
 
 const PORT = Number(process.env.PORT || 3000);
 const MAX_PORT = PORT + 10;
 const PUBLIC_DIR = path.join(__dirname, "..", "public");
+loadEnvFile(path.join(__dirname, "..", ".env"));
+
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "";
+const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-5.4-mini";
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
 
 const RATE_LIMIT_WINDOW = 60 * 1000;
@@ -76,11 +79,14 @@ const server = http.createServer(async function (request, response) {
       const body = await collectBody(request);
       const safeMessage = typeof body.message === "string" ? body.message.substring(0, 500) : "";
       
+      const localGuide = buildGuide(safeMessage, body.context || {});
       let guideData;
-      if (GEMINI_API_KEY && safeMessage && safeMessage !== "__init__") {
-        guideData = await generateWithGemini(safeMessage, body.context || {}, buildGuide(safeMessage, body.context || {}));
+      if (OPENAI_API_KEY && safeMessage && safeMessage !== "__init__") {
+        guideData = await generateWithOpenAI(safeMessage, body.context || {}, localGuide);
+      } else if (GEMINI_API_KEY && safeMessage && safeMessage !== "__init__") {
+        guideData = await generateWithGemini(safeMessage, body.context || {}, localGuide);
       } else {
-        guideData = buildGuide(safeMessage, body.context || {});
+        guideData = localGuide;
       }
       sendJson(request, response, 200, guideData);
     } catch (err) {
@@ -123,8 +129,34 @@ function startServer(port) {
     })
     .listen(port, function () {
       console.log("CivicGuide AI is running on http://127.0.0.1:" + port);
+      if (OPENAI_API_KEY) console.log("OpenAI integration: ACTIVE (" + OPENAI_MODEL + ")");
       if (GEMINI_API_KEY) console.log("Gemini API integration: ACTIVE");
     });
+}
+
+function loadEnvFile(filePath) {
+  if (!fs.existsSync(filePath)) {
+    return;
+  }
+
+  try {
+    const envText = fs.readFileSync(filePath, "utf8");
+    envText.split(/\r?\n/).forEach(function (line) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#")) {
+        return;
+      }
+
+      const match = trimmed.match(/^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/);
+      if (!match || Object.prototype.hasOwnProperty.call(process.env, match[1])) {
+        return;
+      }
+
+      process.env[match[1]] = match[2].replace(/^["']|["']$/g, "");
+    });
+  } catch (error) {
+    console.warn("Unable to load .env file:", error.message);
+  }
 }
 
 function collectBody(request) {
@@ -238,6 +270,87 @@ function sendJson(request, response, statusCode, payload) {
     response.writeHead(statusCode, headers);
     response.end(jsonStr);
   }
+}
+
+async function generateWithOpenAI(message, context, localFallback) {
+  if (!OPENAI_API_KEY || message === "__init__" || message.length < 5) return localFallback;
+
+  const profile = normalizeProfile((context && context.profile) || {});
+  const controller = new AbortController();
+  const timeout = setTimeout(function () {
+    controller.abort();
+  }, 10000);
+
+  try {
+    const prompt = [
+      "User question: " + message,
+      "Location: " + (profile.location || "Unknown"),
+      "Age group: " + (profile.ageGroup || "Unknown"),
+      "Registration status: " + (profile.registered || "Unknown"),
+      "Local fallback title: " + localFallback.title,
+      "Local fallback next action: " + localFallback.nextAction
+    ].join("\n");
+
+    const response = await fetch("https://api.openai.com/v1/responses", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + OPENAI_API_KEY,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: OPENAI_MODEL,
+        instructions: [
+          "You are CivicGuide AI, a neutral election guidance assistant.",
+          "Write a concise, practical 1-2 paragraph overview for the user.",
+          "Do not invent election deadlines. Tell users to confirm final details with official election sources.",
+          "For India, prefer Election Commission of India and Voters' Service Portal references.",
+          "Keep the tone calm, clear, and non-partisan."
+        ].join(" "),
+        input: prompt,
+        max_output_tokens: 320
+      }),
+      signal: controller.signal
+    });
+
+    if (!response.ok) {
+      console.warn("OpenAI request failed with status", response.status);
+      return localFallback;
+    }
+
+    const data = await response.json();
+    const aiText = extractOpenAIText(data);
+    if (!aiText) {
+      return localFallback;
+    }
+
+    return Object.assign({}, localFallback, {
+      overview: aiText,
+      modeLabel: "OpenAI Enhanced Mode"
+    });
+  } catch (err) {
+    console.warn("OpenAI integration failed:", err.message);
+    return localFallback;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+function extractOpenAIText(data) {
+  if (typeof data.output_text === "string" && data.output_text.trim()) {
+    return data.output_text.trim();
+  }
+
+  const output = Array.isArray(data.output) ? data.output : [];
+  for (const item of output) {
+    const content = Array.isArray(item.content) ? item.content : [];
+    for (const part of content) {
+      if (typeof part.text === "string" && part.text.trim()) {
+        return part.text.trim();
+      }
+    }
+  }
+
+  return "";
 }
 
 async function generateWithGemini(message, context, localFallback) {
