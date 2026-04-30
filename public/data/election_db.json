@@ -1,0 +1,114 @@
+{
+  "metadata": {
+    "version": "2026.1",
+    "lastUpdated": "2026-04-30"
+  },
+  "regions": {
+    "india": {
+      "rules": {
+        "age": 18,
+        "citizenship": "Indian citizen",
+        "residency": "Ordinary resident of polling area"
+      },
+      "deadlines": {
+        "registration": "Usually 3 weeks before election day",
+        "updates": "Before the final electoral roll publication"
+      },
+      "documents": [
+        "Voter ID (EPIC)",
+        "Aadhaar Card",
+        "PAN Card",
+        "Driving License",
+        "Passport"
+      ],
+      "links": [
+        { "label": "Voters' Portal", "url": "https://voters.eci.gov.in/" },
+        { "label": "Electoral Search", "url": "https://electoralsearch.eci.gov.in/" }
+      ],
+      "states": {
+        "maharashtra": {
+          "state_election_commission": "https://ceo.maharashtra.gov.in/",
+          "local_notes": "Look out for BMC and Assembly election specific voter list drafts."
+        },
+        "karnataka": {
+          "state_election_commission": "https://ceo.karnataka.gov.in/",
+          "local_notes": "BBMP elections may have separate local polling station allocations."
+        },
+        "west_bengal": {
+          "state_election_commission": "http://ceowestbengal.nic.in/",
+          "local_notes": "Ensure part number and serial number are checked before Phase-I."
+        }
+      }
+    },
+    "united_states": {
+      "rules": {
+        "age": 18,
+        "citizenship": "US citizen",
+        "residency": "Varies by state (usually 30 days)"
+      },
+      "deadlines": {
+        "registration": "Varies (15 to 30 days before, or Same-Day)",
+        "updates": "Varies by state"
+      },
+      "documents": [
+        "State Driver's License",
+        "State ID Card",
+        "US Passport",
+        "Utility Bill (in some states)"
+      ],
+      "links": [
+        { "label": "Vote.gov", "url": "https://vote.gov/" },
+        { "label": "Vote.org Status", "url": "https://www.vote.org/am-i-registered-to-vote/" }
+      ],
+      "states": {
+        "california": {
+          "registration_deadline": "15 days before election day",
+          "same_day": "Yes, conditional voter registration available.",
+          "mail_voting": "Universal vote-by-mail state."
+        },
+        "texas": {
+          "registration_deadline": "30 days before election day",
+          "same_day": "No",
+          "mail_voting": "Requires specific excuse."
+        },
+        "florida": {
+          "registration_deadline": "29 days before election day",
+          "same_day": "No",
+          "mail_voting": "No excuse absentee voting allowed."
+        }
+      }
+    },
+    "united_kingdom": {
+      "rules": {
+        "age": 18,
+        "citizenship": "British, Irish, or qualifying Commonwealth citizen",
+        "residency": "Resident at an address in the UK"
+      },
+      "deadlines": {
+        "registration": "12 working days before the election",
+        "updates": "12 working days before"
+      },
+      "documents": [
+        "Passport",
+        "Driving licence",
+        "Voter Authority Certificate",
+        "Older Person's Bus Pass"
+      ],
+      "links": [
+        { "label": "Register to Vote", "url": "https://www.gov.uk/register-to-vote" },
+        { "label": "Electoral Commission", "url": "https://www.electoralcommission.org.uk/" }
+      ],
+      "states": {
+        "england": {
+          "local_notes": "Photo ID is now mandatory for polling stations in England."
+        },
+        "scotland": {
+          "local_notes": "16 and 17 year olds can vote in Scottish Parliament and local elections."
+        },
+        "wales": {
+          "local_notes": "16 and 17 year olds can vote in Senedd and local elections."
+        }
+      }
+    }
+  }
+}

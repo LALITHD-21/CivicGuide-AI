@@ -3,22 +3,26 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CivicGuide AI</title>
+  <title>CivicGuide AI - Your Election Assistant</title>
   <meta
     name="description"
     content="CivicGuide AI explains elections with clean steps, a progress tracker, a checklist, and actionable next steps."
   />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗳️</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
     href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap"
     rel="stylesheet"
   />
+  <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <a href="#main-content" class="skip-nav">Skip to main content</a>
+
   <div class="page-shell">
-    <header class="app-header">
+    <header class="app-header" role="banner">
       <div class="header-copy">
         <div class="brand-lockup" aria-label="CivicGuide AI logo">
           <div class="brand-mark" aria-hidden="true">
@@ -30,10 +34,26 @@
           </div>
         </div>
 
-        <button type="button" id="theme-toggle" class="theme-toggle" aria-pressed="false">
-          <span class="theme-toggle-icon" aria-hidden="true"></span>
-          <span id="theme-toggle-label">Light mode</span>
-        </button>
+        <div class="header-actions">
+          <button type="button" id="theme-toggle" class="theme-toggle" aria-pressed="false">
+            <span class="theme-toggle-icon" aria-hidden="true"></span>
+            <span id="theme-toggle-label">Light mode</span>
+          </button>
+          
+          <button type="button" id="install-app" class="theme-toggle" style="display: none;">
+            <span aria-hidden="true">⬇️</span>
+            <span>Install App</span>
+          </button>
+          
+          <select id="i18n-select" class="theme-toggle" style="padding: 0 10px; cursor: pointer;">
+            <option value="english">English</option>
+            <option value="hindi">Hindi</option>
+            <option value="tamil">Tamil</option>
+            <option value="telugu">Telugu</option>
+            <option value="bengali">Bengali</option>
+            <option value="marathi">Marathi</option>
+          </select>
+        </div>
 
         <p class="eyebrow">Simple election guidance</p>
         <h1>CivicGuide AI</h1>
@@ -41,7 +61,7 @@
           Personalized, step-by-step election help for eligibility, registration, documents, deadlines, and voting day.
         </p>
 
-        <div class="hero-tags">
+        <div class="hero-tags" aria-label="Key topics">
           <span class="hero-tag">Eligibility</span>
           <span class="hero-tag">Registration</span>
           <span class="hero-tag">Deadlines</span>
@@ -49,7 +69,7 @@
         </div>
       </div>
 
-      <aside class="hero-card">
+      <aside class="hero-card" aria-label="Civic pulse overview">
         <p class="hero-card-label">Civic Pulse</p>
         <div class="hero-metrics">
           <article class="metric-card">
@@ -66,7 +86,7 @@
           </article>
         </div>
 
-        <div class="profile-badges">
+        <div class="profile-badges" aria-label="Profile summary">
           <span id="badge-location" class="profile-badge">Location: Not set</span>
           <span id="badge-age" class="profile-badge">Age: Not set</span>
           <span id="badge-registered" class="profile-badge">Registered: Not set</span>
@@ -75,104 +95,108 @@
       </aside>
     </header>
 
-    <div class="dashboard-grid">
+    <main id="main-content" class="dashboard-grid" role="main">
       <div class="main-column">
-        <section class="user-profile-panel">
+        <section class="user-profile-panel" aria-labelledby="user-profile-heading">
           <div class="user-profile-card">
-            <div class="avatar-ring">
+            <div class="avatar-ring" aria-hidden="true">
               <span id="user-avatar">CG</span>
             </div>
             <div class="user-profile-summary">
               <p class="section-label">User Profile</p>
-              <h2 id="user-display-name">Your civic profile</h2>
+              <h2 id="user-profile-heading">Your civic profile</h2>
               <p id="user-profile-line">Add your name, voter role, and language preference.</p>
               <blockquote class="profile-quote">Every vote is a voice in India&apos;s democracy.</blockquote>
             </div>
           </div>
 
-          <form id="user-profile-form" class="user-profile-form">
-            <label class="field">
-              <span>Your name</span>
-              <input id="user-name-input" type="text" maxlength="40" placeholder="Example: Aarav" />
-            </label>
+          <form id="user-profile-form" class="user-profile-form" aria-label="Edit user profile">
+            <fieldset>
+              <legend class="sr-only">Profile details</legend>
+              <label class="field">
+                <span>Your name</span>
+                <input id="user-name-input" type="text" maxlength="40" placeholder="Example: Aarav" autocomplete="name" />
+              </label>
 
-            <label class="field">
-              <span>Voter role</span>
-              <select id="voter-role-select">
-                <option value="">Select role</option>
-                <option value="first-time">First-time voter</option>
-                <option value="regular">Regular voter</option>
-                <option value="family-helper">Helping family</option>
-                <option value="student">Student learner</option>
-              </select>
-            </label>
+              <label class="field">
+                <span>Voter role</span>
+                <select id="voter-role-select">
+                  <option value="">Select role</option>
+                  <option value="first-time">First-time voter</option>
+                  <option value="regular">Regular voter</option>
+                  <option value="family-helper">Helping family</option>
+                  <option value="student">Student learner</option>
+                </select>
+              </label>
 
-            <label class="field">
-              <span>Language</span>
-              <select id="language-select">
-                <option value="">Preferred language</option>
-                <option value="english">English</option>
-                <option value="hindi">Hindi</option>
-                <option value="tamil">Tamil</option>
-                <option value="telugu">Telugu</option>
-                <option value="bengali">Bengali</option>
-                <option value="marathi">Marathi</option>
-              </select>
-            </label>
-
+              <label class="field">
+                <span>Language</span>
+                <select id="language-select">
+                  <option value="">Preferred language</option>
+                  <option value="english">English</option>
+                  <option value="hindi">Hindi</option>
+                  <option value="tamil">Tamil</option>
+                  <option value="telugu">Telugu</option>
+                  <option value="bengali">Bengali</option>
+                  <option value="marathi">Marathi</option>
+                </select>
+              </label>
+            </fieldset>
             <button type="submit" class="primary-button">Save profile</button>
           </form>
         </section>
 
-        <section class="chat-panel">
+        <section class="chat-panel" aria-labelledby="chat-panel-heading">
           <div class="section-heading">
             <div>
               <p class="section-label">Chat Assistant Panel</p>
-              <h2>Start Here</h2>
+              <h2 id="chat-panel-heading">Start Here</h2>
             </div>
-            <p id="status-line" class="section-copy">Tell CivicGuide AI where you are in the process.</p>
+            <p id="status-line" class="section-copy" aria-live="polite">Tell CivicGuide AI where you are in the process.</p>
           </div>
 
-          <div id="signal-strip" class="signal-strip">
+          <nav id="signal-strip" class="signal-strip" aria-label="Suggested topics">
             <button type="button" class="signal-chip" data-prompt="How do I register to vote?">Registration</button>
             <button type="button" class="signal-chip" data-prompt="Am I eligible to vote?">Eligibility</button>
             <button type="button" class="signal-chip" data-prompt="What documents do I need?">Documents</button>
             <button type="button" class="signal-chip" data-prompt="Show key deadlines">Deadlines</button>
             <button type="button" class="signal-chip" data-prompt="What happens on voting day?">Voting Day</button>
-          </div>
+          </nav>
 
-          <form id="profile-form" class="profile-form">
-            <label class="field field-location">
-              <span>Country or region</span>
-              <input id="location-input" type="text" maxlength="60" placeholder="India, California, London, Ontario..." />
-            </label>
+          <form id="profile-form" class="profile-form" aria-label="Election context">
+            <fieldset>
+              <legend class="sr-only">Context details</legend>
+              <label class="field field-location">
+                <span>Country or region</span>
+                <input id="location-input" type="text" maxlength="60" placeholder="India, California, London, Ontario..." />
+              </label>
 
-            <label class="field field-age">
-              <span>Age group</span>
-              <select id="age-select">
-                <option value="">Select age group</option>
-                <option value="under-18">Under 18</option>
-                <option value="18-24">18-24</option>
-                <option value="25-44">25-44</option>
-                <option value="45-plus">45+</option>
-              </select>
-            </label>
+              <label class="field field-age">
+                <span>Age group</span>
+                <select id="age-select">
+                  <option value="">Select age group</option>
+                  <option value="under-18">Under 18</option>
+                  <option value="18-24">18-24</option>
+                  <option value="25-44">25-44</option>
+                  <option value="45-plus">45+</option>
+                </select>
+              </label>
 
-            <div class="field field-registered">
-              <span>Are you registered?</span>
-              <div id="registered-toggle" class="segmented-control">
-                <button type="button" class="segment-button" data-registered="yes">Yes</button>
-                <button type="button" class="segment-button" data-registered="no">No</button>
-                <button type="button" class="segment-button" data-registered="unsure">Not sure</button>
+              <div class="field field-registered">
+                <span>Are you registered?</span>
+                <div id="registered-toggle" class="segmented-control" role="group" aria-label="Registration status">
+                  <button type="button" class="segment-button" data-registered="yes" aria-pressed="false">Yes</button>
+                  <button type="button" class="segment-button" data-registered="no" aria-pressed="false">No</button>
+                  <button type="button" class="segment-button" data-registered="unsure" aria-pressed="false">Not sure</button>
+                </div>
               </div>
-            </div>
-
+            </fieldset>
             <button type="submit" class="primary-button profile-submit">Update guidance</button>
           </form>
 
-          <div id="chat-stream" class="chat-stream" aria-live="polite"></div>
+          <div id="chat-stream" class="chat-stream" aria-live="polite" aria-atomic="false"></div>
 
-          <form id="chat-form" class="composer">
+          <form id="chat-form" class="composer" aria-label="Ask a question">
             <label class="composer-field" for="chat-input">
               <span class="sr-only">Ask a question about elections</span>
               <input
@@ -187,11 +211,11 @@
           </form>
         </section>
 
-        <section class="actions-panel">
+        <section class="actions-panel" aria-labelledby="actions-panel-heading">
           <div class="section-heading">
             <div>
               <p class="section-label">Action Buttons</p>
-              <h2>Move Forward</h2>
+              <h2 id="actions-panel-heading">Move Forward</h2>
             </div>
             <p class="section-copy">Fast actions for the next likely step.</p>
           </div>
@@ -224,92 +248,97 @@
             </button>
           </div>
 
-          <div id="resource-links" class="resource-links"></div>
+          <nav id="resource-links" class="resource-links" aria-label="External resources"></nav>
         </section>
 
-        <section class="news-panel">
+        <section class="news-panel" aria-labelledby="news-panel-heading">
           <div class="section-heading">
             <div>
               <p class="section-label">ECI News Desk</p>
-              <h2>Latest Election Updates</h2>
+              <h2 id="news-panel-heading">Latest Election Updates</h2>
             </div>
             <p class="section-copy">Recent Election Commission of India updates, with quick explanations.</p>
           </div>
 
-          <div id="news-list" class="news-list"></div>
+          <div id="news-list" class="news-list" aria-live="polite"></div>
         </section>
       </div>
 
-      <div class="side-column">
-        <section class="planner-panel">
+      <aside class="side-column" role="complementary" aria-label="Planning and progress">
+        <section class="planner-panel" aria-labelledby="planner-heading">
           <div class="section-heading compact">
             <div>
               <p class="section-label">Election Day Planner</p>
-              <h2>Voting Plan</h2>
+              <h2 id="planner-heading">Voting Plan</h2>
             </div>
           </div>
 
-          <form id="planner-form" class="planner-form">
-            <label class="field">
-              <span>Election date</span>
-              <input id="election-date-input" type="date" />
-            </label>
+          <form id="planner-form" class="planner-form" aria-label="Election plan">
+            <fieldset>
+              <legend class="sr-only">Plan details</legend>
+              <label class="field">
+                <span>Election date</span>
+                <input id="election-date-input" type="date" />
+              </label>
 
-            <label class="field">
-              <span>Voting method</span>
-              <select id="voting-method-select">
-                <option value="">Choose method</option>
-                <option value="in-person">In person</option>
-                <option value="early">Early voting</option>
-                <option value="mail">Mail or absentee</option>
-                <option value="unsure">Not sure yet</option>
-              </select>
-            </label>
-
+              <label class="field">
+                <span>Voting method</span>
+                <select id="voting-method-select">
+                  <option value="">Choose method</option>
+                  <option value="in-person">In person</option>
+                  <option value="early">Early voting</option>
+                  <option value="mail">Mail or absentee</option>
+                  <option value="unsure">Not sure yet</option>
+                </select>
+              </label>
+            </fieldset>
             <button type="submit" class="primary-button">Save plan</button>
           </form>
 
-          <div id="plan-summary" class="plan-summary"></div>
+          <div id="plan-summary" class="plan-summary" aria-live="polite"></div>
           <div id="plan-milestones" class="plan-milestones"></div>
 
           <div class="planner-actions">
             <button type="button" id="copy-plan-button" class="secondary-button">Copy Plan</button>
+            <button type="button" id="print-plan-button" class="secondary-button">🖨️ Print PDF</button>
             <button type="button" id="clear-plan-button" class="secondary-button danger">Clear</button>
           </div>
         </section>
 
-        <section class="kit-panel">
+        <section class="kit-panel" aria-labelledby="kit-heading">
           <div class="section-heading compact">
             <div>
               <p class="section-label">Voting Day Kit</p>
-              <h2>Personal Kit</h2>
+              <h2 id="kit-heading">Personal Kit</h2>
             </div>
-            <div class="kit-badge">
+            <div class="kit-badge" aria-live="polite">
               <strong id="kit-ready-count">0/4</strong>
               <span>Ready items</span>
             </div>
           </div>
 
-          <form id="kit-form" class="kit-form">
-            <label class="field">
-              <span>Polling place or link</span>
-              <input id="kit-place-input" type="text" maxlength="90" placeholder="School hall, ward office, official link..." />
-            </label>
+          <form id="kit-form" class="kit-form" aria-label="Voting day kit">
+            <fieldset>
+              <legend class="sr-only">Kit details</legend>
+              <label class="field">
+                <span>Polling place or link</span>
+                <input id="kit-place-input" type="text" maxlength="90" placeholder="School hall, ward office, official link..." />
+              </label>
 
-            <label class="field">
-              <span>Travel plan</span>
-              <input id="kit-travel-input" type="text" maxlength="90" placeholder="Walk, bus route, friend pickup, taxi..." />
-            </label>
+              <label class="field">
+                <span>Travel plan</span>
+                <input id="kit-travel-input" type="text" maxlength="90" placeholder="Walk, bus route, friend pickup, taxi..." />
+              </label>
 
-            <label class="field">
-              <span>Important note</span>
-              <input id="kit-note-input" type="text" maxlength="110" placeholder="Bring voter ID, go before work, call helpline..." />
-            </label>
-
+              <label class="field">
+                <span>Important note</span>
+                <input id="kit-note-input" type="text" maxlength="110" placeholder="Bring voter ID, go before work, call helpline..." />
+              </label>
+            </fieldset>
             <button type="submit" class="primary-button">Save kit</button>
           </form>
 
-          <div id="kit-items" class="kit-items"></div>
+          <div id="kit-items" class="kit-items" aria-live="polite"></div>
 
           <div class="kit-actions">
             <button type="button" id="copy-kit-button" class="secondary-button">Copy Kit</button>
@@ -317,34 +346,34 @@
           </div>
         </section>
 
-        <section class="progress-panel">
+        <section class="progress-panel" aria-labelledby="progress-heading">
           <div class="section-heading compact">
             <div>
               <p class="section-label">Progress Tracker</p>
-              <h2>Your Election Path</h2>
+              <h2 id="progress-heading">Your Election Path</h2>
             </div>
-            <div class="progress-stats">
+            <div class="progress-stats" aria-live="polite">
               <strong id="progress-label">Step 1 of 5</strong>
               <span id="checklist-count">0/5 complete</span>
             </div>
           </div>
 
-          <div class="progress-track">
+          <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="20" id="progress-bar-aria">
             <div id="progress-fill" class="progress-fill" style="width: 20%"></div>
           </div>
 
           <div id="progress-steps" class="progress-steps"></div>
 
-          <div id="reminder-note" class="reminder-note hidden"></div>
+          <div id="reminder-note" class="reminder-note hidden" aria-live="polite"></div>
         </section>
 
-        <section class="quiz-panel">
+        <section class="quiz-panel" aria-labelledby="quiz-heading">
           <div class="section-heading compact">
             <div>
               <p class="section-label">Civic Knowledge Quiz</p>
-              <h2>Readiness Check</h2>
+              <h2 id="quiz-heading">Readiness Check</h2>
             </div>
-            <div class="quiz-score">
+            <div class="quiz-score" aria-live="polite">
               <strong id="quiz-score">0/0</strong>
               <span id="quiz-progress-text">Question 1</span>
             </div>
@@ -352,7 +381,7 @@
 
           <div class="quiz-body">
             <p id="quiz-question" class="quiz-question"></p>
-            <div id="quiz-options" class="quiz-options"></div>
+            <div id="quiz-options" class="quiz-options" role="radiogroup" aria-labelledby="quiz-question"></div>
             <div id="quiz-feedback" class="quiz-feedback" aria-live="polite"></div>
           </div>
 
@@ -362,19 +391,28 @@
           </div>
         </section>
 
-        <section class="checklist-panel">
+        <section class="checklist-panel" aria-labelledby="checklist-heading">
           <div class="section-heading">
             <div>
               <p class="section-label">Checklist Panel</p>
-              <h2>Personal Checklist</h2>
+              <h2 id="checklist-heading">Personal Checklist</h2>
             </div>
             <p class="section-copy">Use the checklist to keep track of what is already done.</p>
           </div>
 
           <div id="checklist-list" class="checklist-list"></div>
         </section>
+      </aside>
+    </main>
+    
+    <footer class="app-footer" role="contentinfo">
+      <div class="footer-content">
+        <p>&copy; 2024 CivicGuide AI. Designed to help citizens navigate elections.</p>
+        <p class="footer-gemini-badge" id="gemini-badge" style="display: none;">✨ Powered by Gemini</p>
       </div>
-    </div>
+    </footer>
+    
+    <div id="toast-container" class="toast-container" aria-live="assertive" aria-atomic="true"></div>
   </div>
 
   <script src="app.js"></script>

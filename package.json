@@ -5,8 +5,17 @@
   "main": "server/server.js",
   "scripts": {
     "start": "node server/server.js",
-    "dev": "node server/server.js"
+    "dev": "node server/server.js",
+    "test": "node --test test/"
   },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LALITHD-21/CivicGuide-AI"
+  },
+  "author": "CivicGuide Team",
   "keywords": [
     "civics",
     "elections",

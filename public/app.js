@@ -534,7 +534,7 @@
     updateBadgeState(ui.badgeRegistered, Boolean(state.profile.registered));
     updateBadgeState(ui.badgeUser, Boolean(state.userProfile.name));
     paintUserProfile();
-    paintHero();
+    paintHero(); const observer = new IntersectionObserver((entries) => { entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add("active"); } }); }, { threshold: 0.1 }); document.querySelectorAll(".app-header, section").forEach(el => { el.classList.add("reveal"); observer.observe(el); });
   }
 
   function paintUserProfile() {
@@ -722,7 +722,7 @@
         "</div>"
       );
     }).join("");
-    paintHero();
+    paintHero(); const observer = new IntersectionObserver((entries) => { entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add("active"); } }); }, { threshold: 0.1 }); document.querySelectorAll(".app-header, section").forEach(el => { el.classList.add("reveal"); observer.observe(el); });
   }
 
   function paintChecklist() {
@@ -1248,14 +1248,14 @@
     const node = document.createElement("div");
     node.className = "user-note";
     node.textContent = message;
-    ui.chatStream.appendChild(node);
+    ui.chatStream.appendChild(node); node.scrollIntoView({ behavior: "smooth" }); const firstInteractive = node.querySelector("button, a, input"); if (firstInteractive) firstInteractive.focus();
   }
 
   function appendLoadingCard() {
     const node = document.createElement("div");
     node.className = "loading-card";
     node.textContent = "CivicGuide AI is preparing your next step...";
-    ui.chatStream.appendChild(node);
+    ui.chatStream.appendChild(node); node.scrollIntoView({ behavior: "smooth" }); const firstInteractive = node.querySelector("button, a, input"); if (firstInteractive) firstInteractive.focus();
     return node;
   }
 
@@ -1282,7 +1282,7 @@
       buildSection(ICONS.next + " Next Action", guide.nextAction) +
       "</div>" +
       buildSuggestions(guide.suggestions);
-    ui.chatStream.appendChild(node);
+    ui.chatStream.appendChild(node); node.scrollIntoView({ behavior: "smooth" }); const firstInteractive = node.querySelector("button, a, input"); if (firstInteractive) firstInteractive.focus();
   }
 
   function buildSection(title, text) {
@@ -1926,3 +1926,136 @@
 
   init();
 })();
+
+(function() {
+  // PWA Service Worker
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("/sw.js")
+        .then(reg => console.log("SW registered:", reg.scope))
+        .catch(err => console.log("SW registration failed:", err));
+    });
+  }
+
+  // PWA Install Prompt
+  let deferredPrompt;
+  const installAppBtn = document.getElementById("install-app");
+  
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    installAppBtn.style.display = "inline-flex";
+  });
+
+  installAppBtn.addEventListener("click", async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === "accepted") {
+        installAppBtn.style.display = "none";
+      }
+      deferredPrompt = null;
+    }
+  });
+
+  // Print PDF Export
+  const printBtn = document.getElementById("print-plan-button");
+  if (printBtn) {
+    printBtn.addEventListener("click", () => {
+      window.print();
+    });
+  }
+
+  // Text-To-Speech (TTS)
+  function speak(text) {
+    if ("speechSynthesis" in window) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      // Try to find a local voice
+      const voices = window.speechSynthesis.getVoices();
+      utterance.voice = voices.find(v => v.lang.includes("en")) || voices[0];
+      window.speechSynthesis.speak(utterance);
+    }
+  }
+
+  // Hook into response cards to add TTS buttons
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      mutation.addedNodes.forEach((node) => {
+        if (node.nodeType === 1 && node.classList.contains("response-card")) {
+          const top = node.querySelector(".response-top");
+          if (top && !node.querySelector(".tts-button")) {
+            const btn = document.createElement("button");
+            btn.className = "tts-button";
+            btn.innerHTML = "??";
+            btn.title = "Read aloud";
+            btn.onclick = () => {
+              const text = node.innerText.replace("??", "");
+              speak(text);
+            };
+            top.appendChild(btn);
+          }
+        }
+      });
+    });
+  });
+  
+  const chatStream = document.getElementById("chat-stream");
+  if (chatStream) {
+    observer.observe(chatStream, { childList: true });
+  }
+
+  // i18n Logic
+  const i18nSelect = document.getElementById("i18n-select");
+  let locales = {};
+
+  async function loadLocales() {
+    try {
+      const res = await fetch("/data/locales.json");
+      locales = await res.json();
+      
+      // Load saved preference
+      const savedLang = localStorage.getItem("cg_lang");
+      if (savedLang && locales[savedLang]) {
+        i18nSelect.value = savedLang;
+        applyLanguage(savedLang);
+      }
+    } catch (e) {
+      console.error("Failed to load locales", e);
+    }
+  }
+
+  function applyLanguage(lang) {
+    const t = locales[lang];
+    if (!t) return;
+    
+    // Quick DOM replacements
+    const safeText = (id, text) => {
+      const el = document.getElementById(id);
+      if (el && text) el.textContent = text;
+    };
+    
+    safeText("theme-toggle-label", document.documentElement.getAttribute("data-theme") === "dark" ? t.themeDark : t.themeLight);
+    safeText("hero-stage", t.stage);
+    
+    // Just a sample of applying i18n to UI elements. 
+    // In a full framework this is easier, but here we target specific IDs.
+    const h1 = document.querySelector("h1");
+    if(h1) h1.textContent = t.title;
+    
+    const subtitle = document.querySelector(".header-sub");
+    if(subtitle) subtitle.textContent = t.subtitle;
+    
+    localStorage.setItem("cg_lang", lang);
+  }
+
+  if (i18nSelect) {
+    i18nSelect.addEventListener("change", (e) => {
+      applyLanguage(e.target.value);
+    });
+  }
+
+  // Load offline datasets & locales on startup
+  loadLocales();
+
+})();
+

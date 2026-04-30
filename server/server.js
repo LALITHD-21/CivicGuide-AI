@@ -1,10 +1,35 @@
+/**
+ * @fileoverview CivicGuide AI Server
+ * Handles static asset delivery, rate limiting, and the /api/guide endpoint.
+ * Includes security headers, CORS, gzip compression, and Gemini API integration.
+ */
+
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
+const crypto = require("crypto");
+const zlib = require("zlib");
 
 const PORT = Number(process.env.PORT || 3000);
 const MAX_PORT = PORT + 10;
 const PUBLIC_DIR = path.join(__dirname, "..", "public");
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
+
+const RATE_LIMIT_WINDOW = 60 * 1000;
+const MAX_REQUESTS = 60;
+const rateLimitMap = new Map();
+
+const SECURITY_HEADERS = {
+  "Content-Security-Policy": "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://generativelanguage.googleapis.com https://www.google-analytics.com;",
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "DENY",
+  "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+  "Permissions-Policy": "geolocation=(), microphone=(), camera=()",
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type"
+};
 
 const MIME_TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -18,32 +43,72 @@ const MIME_TYPES = {
   ".ico": "image/x-icon"
 };
 
-const server = http.createServer(function (request, response) {
+const server = http.createServer(async function (request, response) {
   const requestUrl = new URL(request.url, "http://127.0.0.1");
+  const clientIp = request.socket.remoteAddress || "unknown";
+
+  const now = Date.now();
+  const rateRecord = rateLimitMap.get(clientIp) || { count: 0, resetTime: now + RATE_LIMIT_WINDOW };
+  if (now > rateRecord.resetTime) {
+    rateRecord.count = 0;
+    rateRecord.resetTime = now + RATE_LIMIT_WINDOW;
+  }
+  rateRecord.count++;
+  rateLimitMap.set(clientIp, rateRecord);
+
+  for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
+    response.setHeader(key, value);
+  }
+
+  if (request.method === "OPTIONS") {
+    response.writeHead(204);
+    response.end();
+    return;
+  }
+
+  if (rateRecord.count > MAX_REQUESTS) {
+    sendJson(request, response, 429, { error: "Too many requests. Please try again later." });
+    return;
+  }
 
   if (request.method === "POST" && requestUrl.pathname === "/api/guide") {
-    collectBody(request)
-      .then(function (body) {
-        sendJson(response, 200, buildGuide(body.message, body.context || {}));
-      })
-      .catch(function () {
-        sendJson(response, 400, { error: "Invalid JSON body." });
-      });
+    try {
+      const body = await collectBody(request);
+      const safeMessage = typeof body.message === "string" ? body.message.substring(0, 500) : "";
+      
+      let guideData;
+      if (GEMINI_API_KEY && safeMessage && safeMessage !== "__init__") {
+        guideData = await generateWithGemini(safeMessage, body.context || {}, buildGuide(safeMessage, body.context || {}));
+      } else {
+        guideData = buildGuide(safeMessage, body.context || {});
+      }
+      sendJson(request, response, 200, guideData);
+    } catch (err) {
+      const code = err.message === "Payload too large" ? 413 : 400;
+      sendJson(request, response, code, { error: err.message || "Invalid JSON body." });
+    }
     return;
   }
 
   if (request.method === "GET" && requestUrl.pathname === "/api/health") {
-    sendJson(response, 200, { status: "ok" });
+    sendJson(request, response, 200, { status: "ok" });
     return;
   }
 
   if (request.method !== "GET" && request.method !== "HEAD") {
-    sendJson(response, 405, { error: "Method not allowed." });
+    sendJson(request, response, 405, { error: "Method not allowed." });
     return;
   }
 
-  serveStaticAsset(requestUrl.pathname, response, request.method === "HEAD");
+  serveStaticAsset(request, response, requestUrl.pathname, request.method === "HEAD");
 });
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, data] of rateLimitMap.entries()) {
+    if (now > data.resetTime) rateLimitMap.delete(ip);
+  }
+}, RATE_LIMIT_WINDOW);
 
 startServer(PORT);
 
@@ -58,26 +123,41 @@ function startServer(port) {
     })
     .listen(port, function () {
       console.log("CivicGuide AI is running on http://127.0.0.1:" + port);
+      if (GEMINI_API_KEY) console.log("Gemini API integration: ACTIVE");
     });
 }
 
 function collectBody(request) {
   return new Promise(function (resolve, reject) {
     let data = "";
+    let bodySize = 0;
+    let tooLarge = false;
 
     request.on("data", function (chunk) {
-      data += chunk;
-      if (data.length > 100000) {
-        request.destroy();
-        reject(new Error("Body too large"));
+      bodySize += chunk.length;
+      if (bodySize > 100000) {
+        tooLarge = true;
+        data = "";
+        return;
       }
+
+      if (tooLarge) {
+        return;
+      }
+
+      data += chunk;
     });
 
     request.on("end", function () {
+      if (tooLarge) {
+        reject(new Error("Payload too large"));
+        return;
+      }
+
       try {
         resolve(data ? JSON.parse(data) : {});
       } catch (error) {
-        reject(error);
+        reject(new Error("Invalid JSON body."));
       }
     });
 
@@ -85,27 +165,41 @@ function collectBody(request) {
   });
 }
 
-function serveStaticAsset(urlPath, response, headOnly) {
+function serveStaticAsset(request, response, urlPath, headOnly) {
   const safePath = normalizeFilePath(urlPath);
   const filePath = safePath || path.join(PUBLIC_DIR, "index.html");
 
-  fs.readFile(filePath, function (error, buffer) {
-    if (error) {
+  fs.stat(filePath, function (err, stats) {
+    if (err || !stats.isFile()) {
       response.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
       response.end("Not found");
       return;
     }
 
-    response.writeHead(200, {
-      "Content-Type": MIME_TYPES[path.extname(filePath).toLowerCase()] || "application/octet-stream"
-    });
+    const ext = path.extname(filePath).toLowerCase();
+    response.setHeader("Content-Type", MIME_TYPES[ext] || "application/octet-stream");
+    
+    if (ext === ".html") {
+      response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    } else if ([".css", ".js", ".png", ".jpg", ".svg"].includes(ext)) {
+      response.setHeader("Cache-Control", "public, max-age=86400"); // 1 day
+    }
 
     if (headOnly) {
       response.end();
       return;
     }
 
-    response.end(buffer);
+    const acceptEncoding = request.headers["accept-encoding"] || "";
+    if (acceptEncoding.includes("gzip") && [".html", ".css", ".js", ".json", ".svg"].includes(ext)) {
+      response.setHeader("Content-Encoding", "gzip");
+      fs.createReadStream(filePath).pipe(zlib.createGzip()).pipe(response);
+    } else if (acceptEncoding.includes("deflate") && [".html", ".css", ".js", ".json", ".svg"].includes(ext)) {
+      response.setHeader("Content-Encoding", "deflate");
+      fs.createReadStream(filePath).pipe(zlib.createDeflate()).pipe(response);
+    } else {
+      fs.createReadStream(filePath).pipe(response);
+    }
   });
 }
 
@@ -118,12 +212,63 @@ function normalizeFilePath(urlPath) {
   return filePath;
 }
 
-function sendJson(response, statusCode, payload) {
-  response.writeHead(statusCode, {
+function sendJson(request, response, statusCode, payload) {
+  const jsonStr = JSON.stringify(payload);
+  const acceptEncoding = request.headers["accept-encoding"] || "";
+  
+  const headers = {
     "Content-Type": "application/json; charset=utf-8",
     "Cache-Control": "no-store"
-  });
-  response.end(JSON.stringify(payload));
+  };
+
+  if (acceptEncoding.includes("gzip")) {
+    zlib.gzip(jsonStr, (err, buffer) => {
+      if (err) {
+        response.writeHead(500, headers);
+        response.end(JSON.stringify({ error: "Compression failed" }));
+        return;
+      }
+      headers["Content-Encoding"] = "gzip";
+      headers["Content-Length"] = buffer.length;
+      response.writeHead(statusCode, headers);
+      response.end(buffer);
+    });
+  } else {
+    headers["Content-Length"] = Buffer.byteLength(jsonStr);
+    response.writeHead(statusCode, headers);
+    response.end(jsonStr);
+  }
+}
+
+async function generateWithGemini(message, context, localFallback) {
+  if (!GEMINI_API_KEY || message === "__init__" || message.length < 5) return localFallback;
+  try {
+    const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + GEMINI_API_KEY;
+    const profile = context.profile || {};
+    const systemInstruction = "You are CivicGuide AI. Provide a concise, neutral 1-2 paragraph overview for an election assistant. User profile: Location: " + (profile.location || "Unknown") + ", Age: " + (profile.ageGroup || "Unknown") + ", Registered: " + (profile.registered || "Unknown") + ".";
+    const payload = {
+      contents: [{ parts: [{ text: message }] }],
+      systemInstruction: { parts: [{ text: systemInstruction }] },
+      generationConfig: { temperature: 0.1, maxOutputTokens: 250 }
+    };
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    if (!response.ok) return localFallback;
+    const data = await response.json();
+    const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (aiText) {
+      const enhancedGuide = Object.assign({}, localFallback);
+      enhancedGuide.overview = aiText;
+      enhancedGuide.modeLabel = "AI Enhanced Mode";
+      return enhancedGuide;
+    }
+    return localFallback;
+  } catch (err) {
+    return localFallback;
+  }
 }
 
 function buildGuide(message, context) {
