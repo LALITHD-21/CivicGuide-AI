@@ -1,39 +1,68 @@
 # CivicGuide AI
 
-**CivicGuide AI** is a lightweight, India-focused election guidance web app that helps voters understand registration, eligibility, documents, deadlines, voting day preparation, and Election Commission of India updates.
+<p align="center">
+  <img alt="CivicGuide AI" src="https://img.shields.io/badge/CivicGuide-AI-FF9933?style=for-the-badge&labelColor=138808">
+  <img alt="Node.js" src="https://img.shields.io/badge/Node.js-18%2B-339933?style=for-the-badge&logo=node.js&logoColor=white">
+  <img alt="Vanilla JS" src="https://img.shields.io/badge/Vanilla-JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=111111">
+  <img alt="Docker Ready" src="https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white">
+  <img alt="Cloud Run" src="https://img.shields.io/badge/Google_Cloud_Run-Ready-4285F4?style=for-the-badge&logo=googlecloud&logoColor=white">
+</p>
 
-The project is intentionally small, fast, and deployment-friendly. It uses plain HTML, CSS, JavaScript, and a minimal Node.js server. There is no database, no build step, and no external API dependency.
+<p align="center">
+  <strong>A fast, beautiful, India-focused election guidance web app for voter readiness, registration help, civic learning, and voting-day planning.</strong>
+</p>
+
+<p align="center">
+  Built with plain HTML, CSS, JavaScript, and a lightweight Node.js server. No database. No build step. Cloud Run ready.
+</p>
+
+---
+
+## Overview
+
+**CivicGuide AI** helps users understand voter registration, eligibility, documents, deadlines, polling preparation, and Election Commission of India resources through a single-page civic dashboard.
+
+The app is intentionally small and deployment-friendly, while still feeling polished: animated visuals, light and dark themes, profile-based guidance, multilingual data hooks, checklist progress, civic quiz flows, and optional Gemini-powered responses when a `GEMINI_API_KEY` is configured.
+
+---
 
 ## Highlights
 
-- India-focused voter guidance experience
-- User profile with name, voter role, and language preference
-- Light and dark theme toggle with saved preference
-- Local AI-style election assistant
-- Personalized checklist and progress tracker
-- Voting day planner with milestones
-- Voting day kit with copyable checklist
-- Civic readiness quiz
-- Election Commission of India news desk
-- Animated Indian flag-inspired background
-- CSS-only logo and visual identity
-- Docker-ready
-- Google Cloud Run-ready
-- Very small project size, far below 10 MB
+| Experience | Details |
+| --- | --- |
+| India-first voter guide | Guidance around Indian voter registration, eligibility, documents, and ECI resources |
+| Local assistant | Structured civic guidance works without any external AI dependency |
+| Optional AI enhancement | Gemini support can be enabled with an environment variable |
+| Personal profile | Name, voter role, location, age group, registration status, and language preference |
+| Smart checklist | Personalized readiness steps with visual completion tracking |
+| Voting-day planner | Save election date, voting method, route notes, and preparation milestones |
+| Voting-day kit | Copyable checklist for IDs, helplines, travel, and final reminders |
+| Civic quiz | Short readiness quiz with quick help for missed topics |
+| News desk | Election Commission of India update cards with official links |
+| PWA-ready | Manifest and service worker support for a more app-like experience |
+| Production-friendly | Security headers, CORS handling, gzip/deflate compression, rate limiting, and health check |
+| Cloud deployable | Docker and Google Cloud Run ready |
 
-## Live App Experience
+---
 
-The app is designed as a single-page civic dashboard. Users can:
+## Live App Flow
 
-1. Create a local profile.
-2. Add their location, age group, and registration status.
+Users can:
+
+1. Create a local civic profile.
+2. Choose location, age group, registration status, role, and preferred language.
 3. Ask election-related questions.
-4. Track readiness through checklist and progress tools.
-5. Plan voting day and prepare a kit.
-6. Read recent ECI-related updates.
-7. Switch between light and dark themes.
+4. Receive structured guidance with steps, requirements, timeline, and next action.
+5. Track readiness through personalized checklist cards.
+6. Plan voting day with milestones and practical notes.
+7. Prepare a copyable voting-day kit.
+8. Test civic knowledge through the quiz.
+9. Read ECI-related update cards.
+10. Switch between light and dark themes.
 
-All user preferences and checklist data are stored in the browser with `localStorage`.
+All user preferences and progress are stored in the browser using `localStorage`.
+
+---
 
 ## Tech Stack
 
@@ -41,41 +70,56 @@ All user preferences and checklist data are stored in the browser with `localSto
 | --- | --- |
 | Frontend | HTML, CSS, Vanilla JavaScript |
 | Server | Node.js HTTP server |
-| Storage | Browser localStorage |
+| Data | Static JSON files and browser `localStorage` |
+| Optional AI | Google Gemini API through `GEMINI_API_KEY` |
+| Testing | Node built-in test runner |
 | Container | Docker |
-| Deployment Target | Google Cloud Run |
+| Deployment | Google Cloud Run |
+
+---
 
 ## Project Structure
 
 ```text
 vote-wise-ai/
 |-- public/
-|   |-- index.html        # Main app markup
-|   |-- style.css         # UI, themes, responsive layout
-|   `-- app.js            # Client-side behavior and guide logic
+|   |-- data/
+|   |   |-- election_db.json      # Election guidance data
+|   |   `-- locales.json          # Locale and language data
+|   |-- app.js                    # Client-side app logic
+|   |-- index.html                # Main app markup
+|   |-- manifest.json             # PWA manifest
+|   |-- style.css                 # Theme, layout, animation, responsive UI
+|   `-- sw.js                     # Service worker
 |-- server/
-|   `-- server.js         # Static server and /api/guide endpoint
-|-- Dockerfile            # Production container image
-|-- .dockerignore         # Files excluded from Docker image
-|-- package.json          # Node scripts and metadata
-`-- README.md             # Project documentation
+|   `-- server.js                 # Static server and API endpoints
+|-- test/
+|   `-- server.test.js            # Server/API tests
+|-- .dockerignore                 # Files excluded from Docker image
+|-- .env.example                  # Example environment variables
+|-- Dockerfile                    # Production container image
+|-- package.json                  # Scripts and project metadata
+`-- README.md                     # Project documentation
 ```
+
+---
 
 ## Core Features
 
-### User Profile
+### Civic Profile
 
-Users can save:
+Users can save local profile details that personalize the experience:
 
 - Name
 - Voter role
+- Location
+- Age group
+- Registration status
 - Preferred language
-
-This personalizes the dashboard and makes the experience feel more direct.
 
 ### Election Guide Assistant
 
-The assistant provides structured guidance with:
+The assistant returns structured guidance with:
 
 - Overview
 - Step-by-step process
@@ -83,56 +127,50 @@ The assistant provides structured guidance with:
 - Requirements
 - User status
 - Next action
+- Official resources
 
-The guide works locally and does not require an external AI API.
+By default, the guide works locally. If `GEMINI_API_KEY` is available, the server can enrich responses with Gemini while keeping a local fallback.
 
-### Light and Dark Theme
+### Light And Dark Theme
 
-The app includes a theme toggle. The selected theme is saved locally, so the next visit keeps the user’s preference.
+The app includes a theme toggle with saved preference, so returning users keep the same visual mode.
 
-### Voting Day Planner
+### Voting-Day Planner
 
 Users can save:
 
 - Election date
 - Voting method
-
-The app generates practical preparation milestones.
-
-### Voting Day Kit
-
-Users can prepare and copy a personal voting day kit with:
-
 - Polling place or official link
 - Travel plan
-- Important note
-- ID readiness
-- Registration proof readiness
-- Phone and helpline readiness
-- Day bag readiness
+- Important notes
 
-### Checklist and Progress
+The app turns those details into practical preparation milestones.
 
-The checklist adapts based on the user’s profile and registration status. Progress is displayed visually with step cards and completion count.
+### Checklist And Progress
+
+Readiness cards adapt to the user's profile and registration status. Progress is shown with completion counts and visual status updates.
 
 ### Civic Knowledge Quiz
 
-A short quiz helps users test readiness and quickly ask the guide for help on missed topics.
+A short quiz helps users check their readiness and quickly ask the guide for help on topics they missed.
 
 ### ECI News Desk
 
-The news section shows Election Commission of India-related updates with source links and quick explanation actions.
+The news section presents Election Commission of India-related update cards with source links and quick explanation actions.
+
+---
 
 ## Local Development
 
 ### Requirements
 
-- Node.js 18 or newer recommended
+- Node.js 18 or newer
 - npm
 
-### Install
+### Run Locally
 
-This project has no third-party runtime dependencies. You can run it directly.
+This project has no third-party runtime dependencies.
 
 ```bash
 npm start
@@ -150,131 +188,24 @@ http://127.0.0.1:3000
 npm run dev
 ```
 
-This runs the same lightweight server.
+### Run Tests
+
+```bash
+npm test
+```
+
+---
 
 ## Environment Variables
 
 | Variable | Default | Description |
 | --- | --- | --- |
 | `PORT` | `3000` locally, `8080` in Docker | Port used by the Node server |
+| `GEMINI_API_KEY` | Empty | Optional Gemini API key for enhanced assistant responses |
 
-The Dockerfile sets:
+Create a local `.env` from `.env.example` if needed. Do not commit real secrets.
 
-```text
-PORT=8080
-```
-
-This is compatible with Google Cloud Run.
-
-## Docker Usage
-
-### Build Image
-
-```bash
-docker build -t civicguide-ai .
-```
-
-### Run Container
-
-```bash
-docker run --rm -p 8080:8080 civicguide-ai
-```
-
-Open:
-
-```text
-http://127.0.0.1:8080
-```
-
-## Deploy To Google Cloud Run
-
-### 1. Set Your Project
-
-```bash
-gcloud config set project YOUR_PROJECT_ID
-```
-
-### 2. Enable Required Google Cloud Services
-
-```bash
-gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com
-```
-
-### 3. Deploy Directly From Source
-
-```bash
-gcloud run deploy civicguide-ai \
-  --source . \
-  --region asia-south1 \
-  --allow-unauthenticated
-```
-
-Cloud Run will build and deploy the container automatically.
-
-### 4. Open The Service
-
-After deployment, Google Cloud prints a service URL. Open that URL in your browser.
-
-## Alternative GCP Deployment With Container Image
-
-### Build And Push With Cloud Build
-
-```bash
-gcloud builds submit --tag gcr.io/YOUR_PROJECT_ID/civicguide-ai
-```
-
-### Deploy Image To Cloud Run
-
-```bash
-gcloud run deploy civicguide-ai \
-  --image gcr.io/YOUR_PROJECT_ID/civicguide-ai \
-  --region asia-south1 \
-  --allow-unauthenticated
-```
-
-## Suggested GitHub Workflow
-
-### 1. Initialize Git
-
-```bash
-git init
-git add .
-git commit -m "Initial CivicGuide AI app"
-```
-
-### 2. Create A GitHub Repository
-
-Create an empty repository on GitHub, then connect it:
-
-```bash
-git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPOSITORY.git
-git branch -M main
-git push -u origin main
-```
-
-### 3. Deploy From GitHub To Cloud Run
-
-You can connect the GitHub repository in Google Cloud Run and configure automatic builds from the `main` branch.
-
-## Security And Privacy
-
-- No database is used.
-- No personal data is sent to an external API.
-- User data is stored in the browser using `localStorage`.
-- `.env` is excluded from Docker builds through `.dockerignore`.
-- Do not commit secrets or private credentials to GitHub.
-
-## Performance Notes
-
-The project is designed to stay small:
-
-- No frontend framework
-- No bundled assets
-- No image files required for the logo or background
-- CSS-only animated visuals
-- Minimal Node.js server
-
-The source project should remain far below the requested 10 MB limit.
+---
 
 ## API Endpoints
 
@@ -298,7 +229,7 @@ Response:
 POST /api/guide
 ```
 
-Request body:
+Request:
 
 ```json
 {
@@ -315,40 +246,174 @@ Request body:
 
 The endpoint returns structured guidance used by the frontend.
 
+---
+
+## Docker Usage
+
+### Build Image
+
+```bash
+docker build -t civicguide-ai .
+```
+
+### Run Container
+
+```bash
+docker run --rm -p 8080:8080 civicguide-ai
+```
+
+Open:
+
+```text
+http://127.0.0.1:8080
+```
+
+---
+
+## Deploy To Google Cloud Run
+
+### 1. Set Your Project
+
+```bash
+gcloud config set project YOUR_PROJECT_ID
+```
+
+### 2. Enable Required Services
+
+```bash
+gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com
+```
+
+### 3. Deploy From Source
+
+```bash
+gcloud run deploy civic-guide-ai \
+  --source . \
+  --region asia-south1 \
+  --allow-unauthenticated
+```
+
+Cloud Run builds the container and deploys the app automatically.
+
+### 4. Open The Service
+
+After deployment, Google Cloud prints a public service URL. Open that URL in your browser.
+
+---
+
+## Alternative GCP Deployment
+
+### Build And Push With Cloud Build
+
+```bash
+gcloud builds submit --tag gcr.io/YOUR_PROJECT_ID/civic-guide-ai
+```
+
+### Deploy The Image
+
+```bash
+gcloud run deploy civic-guide-ai \
+  --image gcr.io/YOUR_PROJECT_ID/civic-guide-ai \
+  --region asia-south1 \
+  --allow-unauthenticated
+```
+
+---
+
+## GitHub Workflow
+
+```bash
+git add .
+git commit -m "Update CivicGuide AI"
+git push origin main
+```
+
+If this is a new repo:
+
+```bash
+git init
+git branch -M main
+git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPOSITORY.git
+git add .
+git commit -m "Initial CivicGuide AI app"
+git push -u origin main
+```
+
+---
+
+## Security And Privacy
+
+- No database is used.
+- User profile and checklist data stay in the browser through `localStorage`.
+- `.env` is ignored and excluded from Docker builds.
+- `.env.example` is safe to commit because it contains placeholders only.
+- Do not commit API keys, service account files, private tokens, or credentials.
+- Server responses include security headers.
+- API requests are rate-limited.
+- Oversized request bodies are rejected.
+
+---
+
+## Performance Notes
+
+CivicGuide AI is designed to stay small and fast:
+
+- No frontend framework
+- No build tool required
+- Minimal Node.js server
+- Static assets served directly
+- Compression support for text assets
+- Browser-side persistence
+- Cloud Run compatible `PORT=8080`
+
+---
+
 ## Browser Support
 
-The app uses modern browser features such as:
+Use a current version of:
 
-- CSS gradients
-- CSS animations
-- localStorage
-- Fetch API
-- Clipboard API with fallback
+- Chrome
+- Edge
+- Firefox
+- Safari
 
-Use a current version of Chrome, Edge, Firefox, or Safari for the best experience.
+The app uses modern browser features including CSS animations, `localStorage`, Fetch API, service workers, and Clipboard API with fallback behavior.
+
+---
 
 ## Customization
 
-Common customization points:
+| File | Use |
+| --- | --- |
+| `public/style.css` | Colors, themes, layout, animation, responsive design |
+| `public/app.js` | App behavior, guide interactions, quiz, checklist, local state |
+| `public/data/election_db.json` | Election guidance data |
+| `public/data/locales.json` | Locale and language data |
+| `public/index.html` | Main page structure |
+| `server/server.js` | API behavior, static serving, security headers, Gemini integration |
 
-- `public/style.css` for theme, layout, animation, and colors
-- `public/app.js` for guide logic, quiz questions, news cards, and checklist behavior
-- `server/server.js` for static serving and API response logic
+---
 
 ## Production Checklist
 
 Before deployment:
 
 - Confirm `.env` is not committed.
+- Run `npm test`.
 - Run the app locally.
 - Test light and dark themes.
-- Check the `/api/health` endpoint.
-- Build the Docker image if deploying manually.
-- Deploy to Cloud Run using `PORT=8080`.
+- Check `GET /api/health`.
+- Confirm the Docker image runs on port `8080`.
+- Add `GEMINI_API_KEY` in Cloud Run only if AI-enhanced responses are needed.
+- Deploy to Cloud Run.
+
+---
 
 ## License
 
 This project is released under the MIT License.
+
+---
 
 ## Disclaimer
 
